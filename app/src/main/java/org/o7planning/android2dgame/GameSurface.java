@@ -3,12 +3,17 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
+
 public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     private GameThread gameThread;
-    private ChibiCharacter chibi1;
+    private final List<ChibiCharacter>chibiList=new ArrayList<ChibiCharacter>();
 
     public GameSurface(Context context) {
         super(context);
@@ -19,18 +24,43 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void update() {
-        this.chibi1.update();
+        for (ChibiCharacter chibi : chibiList) {
+            chibi.update();
+        }
+    }
+    @Override
+    public boolean onTouchEvent(MotionEvent event){
+        if (event.getAction()==MotionEvent.ACTION_DOWN){
+            int x=(int)event.getX();
+            int y=(int)event.getY();
+
+            for (ChibiCharacter chibi :chibiList){
+                int movingVectorX=x-chibi.getX();
+                int movingVectorY=y-chibi.getY();
+                chibi.setMovingVector(movingVectorX,movingVectorY);
+            }
+            return true;
+        }
+        return false;
     }
 
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
-        this.chibi1.draw(canvas);
+
+        for(ChibiCharacter chibi:chibiList){
+            chibi.draw(canvas);
+        }
     }
     public void surfaceCreated(SurfaceHolder holder){
         Bitmap chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(),R.drawable.chibi1);
-        this.chibi1=new ChibiCharacter(this,chibiBitmap1,100,50);
+        ChibiCharacter chibi1 = new ChibiCharacter(this,chibiBitmap1,100,50);
 
+        Bitmap chibiBitmap2 = BitmapFactory.decodeResource(this.getResources(),R.drawable.chibi2);
+        ChibiCharacter chibi2 = new ChibiCharacter(this,chibiBitmap2,300,150);
+
+        this.chibiList.add(chibi1);
+        this.chibiList.add(chibi2);
         this.gameThread=new GameThread(this,holder);
         this.gameThread.setRunning(true);
         this.gameThread.start();
@@ -51,4 +81,5 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             } retry=true;
         }
     }
+
 }
